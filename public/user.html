@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>פאנל משתמש</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="user.css" />
+</head>
+<body>
+
+<div class="header-container">
+    <h2 id="welcomeUser" class="main-title">ברוך הבא משתמש</h2>
+    <button id="logoutBtn" class="logout-button">התנתק</button>
+</div>
+
+<div class="dashboard-container">
+    <div class="filter-panel card">
+        <h3>סינון וטעינת דיירים</h3>
+        <div class="input-group">
+            <label for="projectInput">שם פרויקט:</label>
+            <input type="text" id="projectInput" placeholder="הכנס שם פרויקט" class="styled-input" />
+        </div>
+
+        <div class="input-group">
+            <label for="addressInput">כתובת בניין:</label>
+            <input type="text" id="addressInput" placeholder="הכנס כתובת בניין" class="styled-input" />
+        </div>
+
+        <div class="input-group">
+            <label for="statusSelect">סטטוס (לסינון תוצאות):</label>
+            <select id="statusSelect" class="styled-select">
+                <option value="">הצג הכל (לפי סטטוס)</option>
+                <option value="ללא מענה">ללא מענה</option>
+                <option value="ענה ונקבע פגישה">ענה ונקבע פגישה</option>
+                <option value="סרבן">סרבן</option>
+                <option value="חתם">חתם</option>
+                <option value="טרם טופל">טרם טופל</option>
+            </select>
+        </div>
+
+        <button id="loadResidentsBtn" class="primary-button">טען דיירים עבור בניין ספציפי</button>
+    </div>
+
+    <div class="assigned-buildings-panel card">
+        <h3>בניינים משויכים אליך:</h3>
+        <div id="userBuildingsContainer" class="building-list">טוען בניינים...</div>
+    </div>
+</div>
+
+<div id="residentsContainer" class="residents-display-panel card">
+    <h3>דיירי הבניין:</h3>
+    <p class="no-data-message">בחר בניין כדי לראות את הדיירים.</p>
+</div>
+
+
+<script src="user.js"></script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+/* פונט כללי ואתחול */
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Heebo', sans-serif;
+    display: flex;
+    flex-direction: column; /* שינוי ל-column כדי שהלוגו, הקונטיינר יהיו אחד מתחת לשני */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #87CEEB, #4682B4);
+    color: #fff;
+    overflow: hidden;
+    position: relative;
+}
+
+/* -------------------- אנימציית רקע - אלמנטים צפים -------------------- */
+.background-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.background-elements li {
+    position: absolute;
+    display: block;
+    list-style: none;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    animation: floatUp 25s linear infinite;
+    bottom: -150px;
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+/* קביעת גדלים ומיקומים אקראיים לאלמנטים */
+.background-elements li:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+.background-elements li:nth-child(2) { left: 10%; width: 30px; height: 30px; animation-delay: 2s; animation-duration: 18s; }
+.background-elements li:nth-child(3) { left: 70%; width: 50px; height: 50px; animation-delay: 4s; animation-duration: 22s; }
+.background-elements li:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 15s; }
+.background-elements li:nth-child(5) { left: 65%; width: 25px; height: 25px; animation-delay: 0s; animation-duration: 10s; }
+.background-elements li:nth-child(6) { left: 75%; width: 100px; height: 100px; animation-delay: 3s; animation-duration: 30s; }
+.background-elements li:nth-child(7) { left: 35%; width: 120px; height: 120px; animation-delay: 7s; animation-duration: 20s; }
+.background-elements li:nth-child(8) { left: 50%; width: 40px; height: 40px; animation-delay: 15s; animation-duration: 35s; }
+.background-elements li:nth-child(9) { left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 25s; }
+.background-elements li:nth-child(10) { left: 85%; width: 90px; height: 90px; animation-delay: 0s; animation-duration: 13s; }
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(-1000px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* -------------------- קונטיינר הלוגו -------------------- */
+.logo-container {
+    margin-bottom: 20px; /* רווח בין הלוגו לתיבת ההתחברות */
+    z-index: 1; /* ודא שהלוגו מעל הרקע */
+    transition: transform 0.3s ease-out; /* אנימציית ריחוף קלה */
+}
+
+.logo-container img {
+    max-width: 180px; /* גודל מקסימלי ללוגו - התאם לפי הצורך */
+    height: auto;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3)); /* צללית עדינה ללוגו */
+    /* אם הלוגו לבן וצריך צבע: */
+    /* filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3)) brightness(1.2) hue-rotate(180deg); */
+}
+
+.logo-container:hover {
+    transform: translateY(-5px); /* ריחוף קל בלוגו בעת מעבר עכבר */
+}
+
+
+/* -------------------- קונטיינר התחברות -------------------- */
+.login-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 50px 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.login-container:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+}
+
+.login-container h2 {
+    margin-bottom: 35px;
+    color: #fff;
+    font-size: 2.5em;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    font-weight: 700;
+}
+
+/* -------------------- שדות קלט -------------------- */
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1.2em;
+    outline: none;
+    transition: all 0.4s ease-in-out;
+    text-align: right;
+    caret-color: #A0DEFF;
+}
+
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: #64B5F6;
+    box-shadow: 0 0 0 5px rgba(100, 181, 246, 0.4);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.input-group input:focus::placeholder {
+    color: transparent;
+}
+
+/* -------------------- כפתור התחברות -------------------- */
+button[type="submit"] {
+    width: 100%;
+    padding: 15px 25px;
+    background: linear-gradient(45deg, #1E90FF, #00BFFF);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1.3em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+button[type="submit"]:hover {
+    background: linear-gradient(45deg, #00BFFF, #1E90FF);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    transform: translateY(-3px);
+}
+
+button[type="submit"]:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* -------------------- רספונסיביות בסיסית -------------------- */
+@media (max-width: 600px) {
+    .logo-container img {
+        max-width: 120px; /* הקטנת לוגו במסכים קטנים */
+    }
+    .login-container {
+        width: 90%;
+        padding: 35px 25px;
+    }
+    .login-container h2 {
+        font-size: 2em;
+    }
+    .input-group input,
+    button[type="submit"] {
+        font-size: 1.1em;
+        padding: 12px 15px;
+    }
+}

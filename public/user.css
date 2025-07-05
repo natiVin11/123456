@@ -1,0 +1,419 @@
+/* פונט כללי ואתחול */
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
+
+:root {
+    /* הגדרת משתני צבעים */
+    --primary-blue: #3498db;
+    --primary-blue-dark: #2980b9;
+    --accent-green: #2ecc71;
+    --light-bg: #ecf0f1;
+    --dark-text: #2c3e50;
+    --light-text: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --border-color: #bdc3c7;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Heebo', sans-serif;
+    background: linear-gradient(135deg, #a0deff, #64b5f6); /* רקע כחול-בהיר */
+    color: var(--dark-text);
+    line-height: 1.6;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    direction: rtl; /* יישור לימין */
+}
+
+/* -------------------- כותרת ראשית וכפתור התנתקות -------------------- */
+.header-container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+.main-title {
+    color: var(--light-text);
+    text-shadow: 1px 1px 2px var(--shadow-medium);
+    font-size: 2.5em;
+    font-weight: 700;
+}
+
+.logout-button {
+    background-color: #e74c3c; /* אדום */
+    color: var(--light-text);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px var(--shadow-light);
+}
+
+.logout-button:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+/* -------------------- קונטיינר ראשי לדאשבורד -------------------- */
+.dashboard-container {
+    display: flex;
+    flex-wrap: wrap; /* יאפשר גלישה שורה למטה במסכים קטנים */
+    gap: 30px; /* רווח בין הכרטיסים */
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 30px;
+    justify-content: center; /* מרכוז כרטיסים */
+}
+
+/* -------------------- עיצוב כרטיס בסיסי -------------------- */
+.card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 8px 16px var(--shadow-medium);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex-grow: 1; /* יתפרס ברוחב זמין */
+    flex-basis: calc(50% - 15px); /* 2 כרטיסים בשורה בד"כ */
+    min-width: 300px; /* רוחב מינימלי לכרטיס */
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+    color: var(--primary-blue-dark);
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    text-align: right;
+}
+
+/* -------------------- פאנל סינון וטעינה -------------------- */
+.filter-panel {
+    /* ספציפיות לפאנל זה אם צריך */
+}
+
+/* -------------------- שדות קלט ובחירה -------------------- */
+.input-group {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--dark-text);
+    font-size: 1.05em;
+}
+
+.styled-input,
+.styled-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1em;
+    color: var(--dark-text);
+    background-color: var(--light-bg);
+    transition: all 0.3s ease;
+    text-align: right; /* יישור לימין */
+    direction: rtl; /* כיוון כתיבה לימין */
+}
+
+.styled-input:focus,
+.styled-select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3); /* זוהר כחול עדין */
+    outline: none;
+    background-color: var(--light-text);
+}
+
+.styled-select {
+    appearance: none; /* הסרת עיצוב ברירת מחדל */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%232c3e50%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E'); /* אייקון חץ מותאם */
+    background-repeat: no-repeat;
+    background-position: left 15px center; /* מיקום החץ משמאל */
+    padding-left: 40px; /* רווח לאייקון */
+}
+
+/* -------------------- כפתורים -------------------- */
+.primary-button {
+    background-color: var(--primary-blue);
+    color: var(--light-text);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px var(--shadow-light);
+    width: 100%; /* כפתור תמיד ברוחב מלא */
+}
+
+.primary-button:hover {
+    background-color: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px var(--shadow-medium);
+}
+
+.primary-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+/* -------------------- בניינים משויכים -------------------- */
+.building-list {
+    max-height: 250px; /* גובה מקסימלי לרשימה עם גלילה */
+    overflow-y: auto;
+    padding-left: 10px; /* רווח עקב גלילה */
+    text-align: right;
+}
+
+.building-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.building-list::-webkit-scrollbar-track {
+    background: var(--light-bg);
+    border-radius: 10px;
+}
+
+.building-list::-webkit-scrollbar-thumb {
+    background: var(--primary-blue);
+    border-radius: 10px;
+}
+
+.building-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-blue-dark);
+}
+
+.building-list div { /* עיצוב לכל בניין ברשימה */
+    background-color: var(--light-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* לאפשר גלישה בשורה במידת הצורך */
+}
+
+.building-list div:last-child {
+    margin-bottom: 0;
+}
+
+.building-list div:hover {
+    background-color: #e0e6ea;
+    transform: translateX(-5px); /* אפקט קל בימין */
+}
+
+.building-item-details {
+    flex-grow: 1; /* תופס מקום ככל האפשר */
+    margin-left: 15px; /* רווח מהכפתור */
+    text-align: right;
+}
+
+.building-item-details span {
+    display: block;
+    font-size: 0.95em;
+    color: var(--dark-text);
+}
+
+.building-item-details .building-project {
+    font-weight: bold;
+    color: var(--primary-blue-dark);
+}
+
+.building-stats {
+    flex-shrink: 0; /* לא יתכווץ */
+    text-align: left; /* יישור המספרים לשמאל */
+    font-size: 0.85em;
+    color: #555;
+    white-space: nowrap; /* מניעת שבירת שורה */
+}
+.building-stats span {
+    margin-right: 8px;
+}
+.building-stats .handled {
+    color: var(--accent-green);
+    font-weight: bold;
+}
+.building-stats .unhandled {
+    color: #e67e22; /* צבע כתום לא מטופל */
+    font-weight: bold;
+}
+
+/* -------------------- דיירי הבניין -------------------- */
+.residents-display-panel {
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 30px;
+    min-height: 200px; /* גובה מינימלי לפאנל */
+}
+
+.no-data-message {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 50px;
+    font-size: 1.1em;
+}
+
+/* עיצוב לכרטיס דייר בודד (ייווצר ב-JS) */
+.resident-card {
+    background-color: var(--light-text);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 8px var(--shadow-light);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: right;
+    display: flex;
+    flex-direction: column; /* פרטים בטור */
+}
+
+.resident-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px var(--shadow-medium);
+}
+
+.resident-card h4 { /* שם בעל הדירה */
+    font-size: 1.4em;
+    color: var(--primary-blue-dark);
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+.resident-card p {
+    margin-bottom: 5px;
+    font-size: 0.95em;
+    color: var(--dark-text);
+    text-align: right;
+}
+
+.resident-card p strong {
+    color: var(--primary-blue);
+    margin-left: 5px;
+}
+
+.resident-card .resident-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 0.85em;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* צבעי סטטוסים */
+.status-טרם_טופל { background-color: #f39c12; color: white; } /* כתום */
+.status-ללא_מענה { background-color: #95a5a6; color: white; } /* אפור */
+.status-ענה_ונקבע_פגישה { background-color: #3498db; color: white; } /* כחול */
+.status-סרבן { background-color: #e74c3c; color: white; } /* אדום */
+.status-חתם { background-color: var(--accent-green); color: white; } /* ירוק */
+
+/* -------------------- רספונסיביות -------------------- */
+@media (max-width: 900px) {
+    .dashboard-container {
+        flex-direction: column; /* בעמודות במסכים בינוניים */
+        gap: 25px;
+    }
+    .card {
+        flex-basis: 100%; /* תופס רוחב מלא */
+        padding: 25px;
+    }
+    .main-title {
+        font-size: 2em;
+    }
+    .logout-button {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
+    .card h3 {
+        font-size: 1.6em;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 15px;
+    }
+    .header-container {
+        flex-direction: column;
+        align-items: flex-end;
+        margin-bottom: 20px;
+    }
+    .main-title {
+        margin-bottom: 15px;
+        font-size: 1.8em;
+    }
+    .dashboard-container {
+        gap: 20px;
+    }
+    .card {
+        padding: 20px;
+    }
+    .card h3 {
+        font-size: 1.4em;
+        margin-bottom: 20px;
+    }
+    .input-group label {
+        font-size: 0.95em;
+    }
+    .styled-input,
+    .styled-select,
+    .primary-button {
+        padding: 10px 12px;
+        font-size: 0.95em;
+    }
+    .building-list div {
+        flex-direction: column;
+        align-items: flex-end; /* יישור לימין של פריטים */
+        padding: 12px;
+    }
+    .building-item-details {
+        margin-bottom: 5px;
+        margin-left: 0;
+    }
+    .building-stats {
+        text-align: right; /* יישור הסטטוסים לימין */
+        width: 100%;
+    }
+    .resident-card h4 {
+        font-size: 1.2em;
+    }
+    .resident-card p {
+        font-size: 0.9em;
+    }
+}

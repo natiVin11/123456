@@ -1,0 +1,607 @@
+/* פונט כללי ואתחול */
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
+
+:root {
+    /* הגדרת משתני צבעים */
+    --primary-blue: #3498db;
+    --primary-blue-dark: #2980b9;
+    --accent-green: #2ecc71;
+    --red-danger: #e74c3c;
+    --red-danger-dark: #c0392b;
+    --light-bg: #ecf0f1;
+    --dark-text: #2c3e50;
+    --light-text: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.95); /* כמעט אטום */
+    --border-color: #bdc3c7;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.15);
+    --shadow-heavy: rgba(0, 0, 0, 0.25);
+    --orange-status: #e67e22;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Heebo', sans-serif;
+    background: linear-gradient(135deg, #a0deff, #64b5f6); /* רקע כחול-בהיר */
+    color: var(--dark-text);
+    line-height: 1.6;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    direction: rtl; /* יישור לימין */
+}
+
+/* -------------------- כותרת ראשית וכפתור התנתקות -------------------- */
+.header-container {
+    width: 100%;
+    max-width: 1400px; /* רחב יותר כדי להכיל את הגריד */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+.main-title {
+    color: var(--light-text);
+    text-shadow: 1px 1px 2px var(--shadow-medium);
+    font-size: 2.8em;
+    font-weight: 700;
+}
+
+.logout-button {
+    background-color: var(--red-danger);
+    color: var(--light-text);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px var(--shadow-light);
+}
+
+.logout-button:hover {
+    background-color: var(--red-danger-dark);
+    transform: translateY(-2px);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+/* -------------------- רשת הדאשבורד -------------------- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 300px מינימום, גמיש */
+    gap: 30px;
+    width: 100%;
+    max-width: 1400px; /* רוחב מותאם לרשת */
+    margin-bottom: 30px;
+}
+
+/* -------------------- עיצוב כרטיס בסיסי -------------------- */
+.card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 8px 16px var(--shadow-medium);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column; /* תוכן בטור */
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.card h3 {
+    color: var(--primary-blue-dark);
+    margin-bottom: 20px;
+    font-size: 2em;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    text-align: right;
+}
+
+.card h4.card-subtitle { /* עבור כותרות משנה בתוך כרטיסים */
+    color: var(--primary-blue);
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    text-align: right;
+}
+
+.section-description {
+    color: #555;
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+/* -------------------- שדות קלט ובחירה -------------------- */
+.input-group {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--dark-text);
+    font-size: 1.05em;
+}
+
+.styled-input,
+.styled-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1em;
+    color: var(--dark-text);
+    background-color: var(--light-bg);
+    transition: all 0.3s ease;
+    text-align: right; /* יישור לימין */
+    direction: rtl; /* כיוון כתיבה לימין */
+}
+
+/* ספציפי לשדות סיסמה - כיוון LTR */
+.styled-input.password-input {
+    direction: ltr;
+    text-align: left;
+}
+
+
+.styled-input:focus,
+.styled-select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3); /* זוהר כחול עדין */
+    outline: none;
+    background-color: var(--light-text);
+}
+
+.styled-select {
+    appearance: none; /* הסרת עיצוב ברירת מחדל */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* אייקון חץ מותאם (אפשר גם להשתמש ב-Font Awesome אם יש) */
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22%232c3e50%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: left 15px center; /* מיקום החץ משמאל */
+    padding-left: 40px; /* רווח לאייקון */
+}
+
+/* -------------------- כפתורים -------------------- */
+.primary-button,
+.secondary-button,
+.danger-button {
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px var(--shadow-light);
+    flex-shrink: 0; /* מונע התכווצות כפתורים */
+}
+
+.primary-button {
+    background-color: var(--primary-blue);
+    color: var(--light-text);
+}
+
+.primary-button:hover {
+    background-color: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px var(--shadow-medium);
+}
+
+.primary-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.secondary-button {
+    background-color: #7f8c8d; /* אפור */
+    color: var(--light-text);
+}
+
+.secondary-button:hover {
+    background-color: #95a5a6;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px var(--shadow-medium);
+}
+
+.secondary-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.danger-button {
+    background-color: var(--red-danger);
+    color: var(--light-text);
+}
+
+.danger-button:hover {
+    background-color: var(--red-danger-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px var(--shadow-medium);
+}
+
+.danger-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+/* כפתורים קטנים יותר */
+.small-button {
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+/* -------------------- פריטי רשימה כלליים -------------------- */
+.list-item {
+    background-color: var(--light-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column; /* חשוב: האלמנטים יסתדרו בטור אחד מתחת לשני */
+    align-items: flex-end; /* יישור כל התוכן לימין */
+    flex-wrap: wrap; /* מאפשר לתוכן לרדת שורה */
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.list-item:last-child {
+    margin-bottom: 0;
+}
+
+.list-item:hover {
+    background-color: #e0e6ea;
+    transform: translateX(-5px); /* אפקט קל בימין */
+    box-shadow: 0 4px 8px var(--shadow-light);
+}
+
+.list-item b {
+    font-size: 1.1em;
+    color: var(--primary-blue-dark);
+    width: 100%; /* תופס את כל הרוחב הזמין */
+    text-align: right;
+    margin-bottom: 10px; /* רווח מתחת לשם המשתמש */
+}
+
+.item-actions {
+    display: flex;
+    flex-wrap: wrap; /* מאפשר לכפתורים לרדת שורה */
+    gap: 10px; /* רווח בין כפתורים ושדות */
+    width: 100%; /* תופס את כל רוחב ההורה */
+    justify-content: flex-end; /* יישור הכפתורים לימין */
+    align-items: center; /* יישור אנכי */
+}
+
+.item-actions button {
+    margin: 0; /* ביטול שוליים שהוגדרו מראש לכפתורים */
+    white-space: nowrap; /* מונע שבירת שורה בטקסט הכפתור */
+}
+
+
+/* ספציפי לרשימת משתמשים */
+.user-item {
+    /* כבר flex-direction: column מאב ה-list-item */
+    /* כבר align-items: flex-end מאב ה-list-item */
+    gap: 0; /* לביטול רווח נוסף */
+}
+
+.user-item b {
+    margin-bottom: 10px; /* רווח תחתון לשם המשתמש */
+}
+
+.user-item .password-input {
+    width: 100%; /* תופס את כל הרוחב הזמין בתוך item-actions */
+    margin-bottom: 10px; /* רווח מתחת לשדה הסיסמה */
+    min-width: unset; /* מבטל הגבלות רוחב מינימלי קודמות */
+    max-width: unset; /* מבטל הגבלות רוחב מקסימלי קודמות */
+    flex-shrink: 1; /* יאפשר לשדה להתכווץ במידת הצורך */
+}
+
+/* -------------------- שייכות פרויקטים -------------------- */
+.new-assignment-form {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.new-assignment-form .input-group {
+    margin-bottom: 15px;
+}
+
+.assignment-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* יישור כל האלמנטים לימין */
+    gap: 5px;
+    padding: 10px 15px;
+    font-size: 0.95em;
+}
+
+.assignment-item b {
+    font-size: 1.1em;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.assignment-item span {
+    width: 100%;
+    text-align: right;
+    color: #555;
+}
+
+.assignment-item .item-actions {
+    width: 100%;
+    justify-content: flex-end; /* יישור לימין בתוך השיוך */
+    margin-top: 10px;
+    margin-left: 0; /* ביטול margin-left: auto שהיה גורם לדחיפה לימין */
+}
+
+
+/* -------------------- צפייה בכתובות פרויקט ספציפיות -------------------- */
+.address-list {
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.address-item {
+    cursor: pointer;
+    background-color: var(--light-bg);
+    padding: 12px 18px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid #c9d0d6;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.address-item:hover {
+    background-color: #e0e6ea;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px var(--shadow-light);
+}
+
+.address-details {
+    flex-grow: 1;
+    text-align: right;
+    margin-left: 15px; /* רווח מהכפתור */
+}
+
+.address-details span {
+    display: block;
+    font-size: 0.95em;
+    color: var(--dark-text);
+}
+
+.address-details b {
+    font-size: 1.1em;
+    color: var(--primary-blue-dark);
+}
+
+.handled-count {
+    color: var(--accent-green);
+    font-weight: bold;
+}
+
+.unhandled-count {
+    color: var(--orange-status); /* כתום */
+    font-weight: bold;
+}
+
+.back-button {
+    margin-top: 20px;
+    width: auto; /* לא ברוחב מלא */
+}
+
+/* -------------------- הודעות שגיאה / הצלחה -------------------- */
+.message-area {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.message-area.success {
+    background-color: rgba(46, 204, 113, 0.1);
+    border: 1px solid var(--accent-green);
+    color: var(--accent-green);
+}
+
+.message-area.error {
+    background-color: rgba(231, 76, 60, 0.1);
+    border: 1px solid var(--red-danger);
+    color: var(--red-danger);
+}
+
+.error-message { /* עיצוב להודעות שגיאה כלליות */
+    color: var(--red-danger);
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.no-data-message {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 30px;
+    font-size: 1.1em;
+}
+
+/* -------------------- רספונסיביות -------------------- */
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* טור אחד במסכים קטנים יותר */
+        gap: 20px;
+    }
+    .main-title {
+        font-size: 2.2em;
+    }
+    .logout-button {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
+    .card {
+        padding: 25px;
+    }
+    .card h3 {
+        font-size: 1.8em;
+    }
+    .card h4.card-subtitle {
+        font-size: 1.3em;
+    }
+    .list-item b {
+        font-size: 1em;
+    }
+    .list-item .item-actions {
+        flex-direction: row; /* ברוחב הזה, ננסה להשאיר בשורה אם יש מקום */
+        justify-content: flex-end; /* יישור הכפתורים והשדות לימין בתוך ה-item-actions */
+        align-items: center; /* יישור אנכי */
+        gap: 8px; /* רווח בין הפריטים */
+        width: 100%; /* תופס את כל הרוחב */
+        margin-top: 10px; /* רווח מהשם */
+    }
+    .user-item .password-input {
+        width: auto; /* מאפשר לו להתאים את עצמו */
+        min-width: 120px; /* רוחב מינימלי סביר */
+        max-width: 180px; /* רוחב מקסימלי סביר */
+        margin-bottom: 0; /* אין רווח תחתון כי הכפתורים באותה שורה */
+    }
+    .user-item .item-actions button {
+        width: auto; /* מאפשר לכפתורים להתאים את עצמם */
+        min-width: unset; /* מבטל מינימום רוחב קודם */
+        flex-grow: 0; /* לא יתפוס מקום מיותר */
+    }
+
+    .assign-controls {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        margin-top: 10px;
+        align-items: flex-end; /* יישור לימין */
+    }
+    .styled-select {
+        width: 100%; /* רוחב מלא ל-select */
+        text-align-last: right; /* כדי שהטקסט בתוך הסלקט יהיה מיושר לימין */
+    }
+    .styled-select {
+        background-position: left 10px center; /* הזזת החץ שמאלה */
+        padding-left: 35px; /* התאמת ריפוד */
+    }
+
+    .address-details {
+        margin-left: 0; /* ביטול רווח בצד ימין */
+        width: 100%; /* תופס רוחב מלא */
+        text-align: right;
+    }
+    .address-item .item-actions {
+        width: 100%;
+        justify-content: flex-end; /* כפתור בודד של "צפה בכתובות" יכול להיות מיושר לימין */
+    }
+
+    .assignment-item {
+        align-items: flex-end;
+    }
+    .assignment-item .item-actions {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    .main-title {
+        font-size: 1.8em;
+        text-align: center;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .header-container {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .logout-button {
+        align-self: flex-start; /* דוחף את כפתור ההתנתקות לצד שמאל */
+    }
+    .dashboard-grid {
+        gap: 15px;
+    }
+    .card {
+        padding: 20px;
+    }
+    .card h3 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+    .card h4.card-subtitle {
+        font-size: 1.2em;
+    }
+    .section-description {
+        font-size: 0.9em;
+    }
+    .styled-input,
+    .styled-select,
+    .primary-button,
+    .secondary-button,
+    .danger-button {
+        padding: 10px 12px;
+        font-size: 0.9em;
+    }
+    .small-button {
+        padding: 6px 12px;
+        font-size: 0.8em;
+    }
+    .list-item {
+        padding: 10px 15px;
+        flex-direction: column; /* תמיד טור במובייל */
+        align-items: flex-end;
+    }
+    .list-item b {
+        width: 100%;
+        text-align: right;
+        margin-bottom: 5px;
+    }
+    .item-actions {
+        margin-top: 8px;
+        flex-direction: column; /* שדה הסיסמה והכפתורים ירדו אחד מתחת לשני */
+        align-items: flex-end; /* יישור לימין */
+        gap: 8px; /* רווח בין הפריטים בטור */
+    }
+    .user-item .password-input,
+    .user-item .item-actions button {
+        width: 100%; /* רוחב מלא במובייל */
+        text-align: center;
+    }
+    .assignment-item .item-actions {
+        justify-content: flex-end;
+    }
+}

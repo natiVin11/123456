@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>רשימת דיירים</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* הגדרת משתני צבעים - אחיד עם הקבצים האחרים */
+        :root {
+            --primary-blue: #3498db;
+            --primary-blue-dark: #2980b9;
+            --accent-green: #2ecc71;
+            --red-danger: #e74c3c;
+            --light-bg: #ecf0f1;
+            --dark-text: #2c3e50;
+            --light-text: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.98); /* כמעט אטום, שקוף יותר מעט */
+            --border-color: #bdc3c7;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.12);
+            --orange-status: #e67e22;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #a0deff, #64b5f6); /* רקע כחול-בהיר */
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            direction: rtl; /* יישור לימין */
+        }
+
+        h2#pageTitle {
+            color: var(--light-text);
+            text-shadow: 1px 1px 3px var(--shadow-medium);
+            font-size: 2.5em;
+            margin-bottom: 25px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5); /* קו תחתון עדין */
+            width: 100%;
+            max-width: 800px;
+        }
+
+        #residentsList {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 30px;
+        }
+
+        #residentsList p { /* הודעות טעינה/אין דיירים */
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px var(--shadow-light);
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            font-size: 1.1em;
+        }
+
+        .resident-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px var(--shadow-medium);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: right; /* יישור כל הטקסט בתוך הכרטיס לימין */
+            border-right: 5px solid var(--primary-blue); /* קו צד דקורטיבי */
+        }
+
+        .resident-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+        }
+
+        .resident-card strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+            color: var(--primary-blue-dark);
+            border-bottom: 1px dashed var(--border-color); /* קו מקווקו מתחת לשם */
+            padding-bottom: 8px;
+        }
+
+        .resident-card span {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 1em;
+            color: var(--dark-text);
+        }
+
+        .resident-card span:last-of-type {
+            margin-bottom: 0; /* אין מרווח תחתון לפריט האחרון */
+        }
+
+        .status-handled {
+            color: var(--accent-green);
+            font-weight: bold;
+            display: inline; /* כדי לא לשבור שורה */
+        }
+
+        .status-unhandled {
+            color: var(--orange-status);
+            font-weight: bold;
+            display: inline; /* כדי לא לשבור שורה */
+        }
+
+        .back-button {
+            background-color: var(--primary-blue);
+            color: var(--light-text);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px var(--shadow-light);
+            margin-top: 20px;
+        }
+
+        .back-button:hover {
+            background-color: var(--primary-blue-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px var(--shadow-medium);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px var(--shadow-light);
+        }
+
+        /* רספונסיביות */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            h2#pageTitle {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+            .resident-card {
+                padding: 20px;
+                margin-bottom: 12px;
+            }
+            .resident-card strong {
+                font-size: 1.2em;
+            }
+            .resident-card span {
+                font-size: 0.95em;
+            }
+            .back-button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            h2#pageTitle {
+                font-size: 1.8em;
+                margin-bottom: 15px;
+                line-height: 1.3;
+            }
+            .resident-card {
+                padding: 15px;
+                margin-bottom: 10px;
+            }
+            .resident-card strong {
+                font-size: 1.1em;
+            }
+            .resident-card span {
+                font-size: 0.9em;
+            }
+            #residentsList p {
+                font-size: 1em;
+                padding: 15px;
+            }
+            .back-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<h2 id="pageTitle"></h2>
+<div id="residentsList">
+    <p>טוען דיירים...</p>
+</div>
+<button class="back-button" onclick="window.history.back()">חזור לפאנל הניהול</button>
+
+<script>
+    function getQueryParams() {
+        const params = {};
+        window.location.search.substring(1).split('&').forEach(param => {
+            const parts = param.split('=');
+            params[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1] || '');
+        });
+        return params;
+    }
+
+    async function loadResidents() {
+        const params = getQueryParams();
+        const project = params.project;
+        const address = params.address;
+
+        if (!project || !address) {
+            document.getElementById('pageTitle').innerText = 'שגיאה: פרטי פרויקט או כתובת חסרים.';
+            document.getElementById('residentsList').innerHTML = '';
+            return;
+        }
+
+        document.getElementById('pageTitle').innerText = `דיירים בפרויקט: ${project}, כתובת: ${address}`;
+        const residentsListDiv = document.getElementById('residentsList');
+        residentsListDiv.innerHTML = '<p>טוען דיירים...</p>';
+
+        try {
+            const response = await fetch(`/residents-by-building?project=${encodeURIComponent(project)}&address=${encodeURIComponent(address)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const residents = await response.json();
+
+            if (residents.length === 0) {
+                residentsListDiv.innerHTML = '<p>אין דיירים בכתובת זו.</p>';
+                return;
+            }
+
+            residentsListDiv.innerHTML = ''; // Clear loading message
+            residents.forEach(resident => {
+                const statusClass = resident.status === 'טופל' ? 'status-handled' : 'status-unhandled';
+                const residentCard = `
+                        <div class="resident-card">
+                            <strong>שם בעל הדירה: ${resident.owner_full_name || 'לא צוין'}</strong>
+                            <span>מספר תעודת זהות: ${resident.id_number || 'לא צוין'}</span>
+                            <span>טלפון נייד: ${resident.mobile_phone || 'לא צוין'}</span>
+                            <span>מספר דירה: ${resident.apartment_number || 'לא צוין'}, קומה: ${resident.floor || 'לא צוין'}</span>
+                            <span>סטטוס: <span class="${statusClass}">${resident.status || 'לא ידוע'}</span></span>
+                            <span>הערות: ${resident.note || 'אין'}</span>
+                            <span>עודכן לאחרונה: ${new Date(resident.updated_at).toLocaleString() || 'לא צוין'}</span>
+                            </div>
+                    `;
+                residentsListDiv.insertAdjacentHTML('beforeend', residentCard);
+            });
+
+        } catch (error) {
+            console.error('שגיאה בטעינת הדיירים:', error);
+            residentsListDiv.innerHTML = `<p>שגיאה בטעינת נתוני הדיירים: ${error.message}</p>`;
+        }
+    }
+
+    window.onload = loadResidents;
+</script>
+</body>
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>פאנל ניהול</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+<div class="header-container">
+    <h2 class="main-title">ברוך הבא מנהל</h2>
+    <button id="logoutBtn" class="logout-button">התנתק</button>
+</div>
+
+<div class="dashboard-grid">
+    <section class="card upload-section">
+        <h3>העלאת קובץ אקסל לפרויקט</h3>
+        <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="input-group">
+                <label for="uploadProject">שם הפרויקט:</label>
+                <input type="text" id="uploadProject" name="project" placeholder="שם הפרויקט" class="styled-input" required />
+            </div>
+
+            <div class="input-group">
+                <label for="uploadFile">בחר קובץ אקסל:</label>
+                <input type="file" id="uploadFile" name="file" accept=".xlsx" class="styled-input" required />
+            </div>
+            <button type="submit" class="primary-button">העלה</button>
+        </form>
+    </section>
+
+    <section class="card assign-section">
+        <h3>שיוך פרויקטים למשתמשים</h3>
+        <p class="section-description">שייך כתובות ספציפיות מפרויקטים למשתמשים.</p>
+        <div id="assignments">טוען שיוכים...</div>
+    </section>
+
+    <section class="card project-view-section">
+        <h3>צפייה בפרויקטים</h3>
+        <p class="section-description">צפה בסיכום הפרויקטים ודייריהם.</p>
+        <div id="projectStats">טוען פרויקטים...</div>
+    </section>
+
+    <section class="card user-management-section">
+        <h3>ניהול משתמשים</h3>
+        <p class="section-description">עדכן או מחק משתמשים קיימים.</p>
+        <div id="userList">טוען משתמשים...</div>
+    </section>
+
+    <section class="card add-user-section">
+        <h3>הוספת משתמש חדש</h3>
+        <form id="addUserForm" novalidate>
+            <div class="input-group">
+                <label for="newUsername">שם משתמש:</label>
+                <input type="text" id="newUsername" placeholder="שם משתמש" class="styled-input" required />
+            </div>
+
+            <div class="input-group">
+                <label for="newPassword">סיסמה:</label>
+                <input type="password" id="newPassword" placeholder="סיסמה" class="styled-input" required />
+            </div>
+
+            <div class="input-group">
+                <label for="newRole">תפקיד:</label>
+                <select id="newRole" class="styled-select" required>
+                    <option value="" disabled selected>בחר תפקיד</option>
+                    <option value="admin">מנהל</option>
+                    <option value="user">משתמש רגיל</option>
+                </select>
+            </div>
+            <button type="submit" class="primary-button">הוסף משתמש</button>
+        </form>
+        <div id="addUserMessage" class="message-area"></div>
+    </section>
+</div>
+
+<script>
+    let allUsers = []; // To store users for assignment dropdowns
+
+    // --- Utility Functions ---
+    async function fetchAndRender(url, containerId, renderFunction, errorMessage) {
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`שגיאה בטעינה: ${res.status}`);
+            const data = await res.json();
+            renderFunction(data);
+        } catch (e) {
+            console.error(e);
+            document.getElementById(containerId).innerHTML = `<p class="error-message">${errorMessage}</p>`;
+        }
+    }
+
+    // --- Project Management ---
+    function deleteProject(project) {
+        if (!confirm(`אתה בטוח שברצונך למחוק את הפרויקט "${project}"? פעולה זו לא ניתנת לביטול.`)) return;
+
+        fetch('/delete-project', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error(`שגיאה: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('הפרויקט נמחק בהצלחה!');
+                    loadAssignments(); // Refresh assignments
+                    loadAllProjects(); // Refresh project stats
+                } else {
+                    alert(`שגיאה במחיקת הפרויקט: ${data.message || 'שגיאה לא ידועה'}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('אירעה שגיאה במחיקת הפרויקט.');
+            });
+    }
+
+    function loadAllProjects() {
+        fetchAndRender(
+            '/all-projects',
+            'projectStats',
+            projects => {
+                const container = document.getElementById('projectStats');
+                container.innerHTML = '<h4 class="card-subtitle">סטטוסים לפי פרויקט</h4>';
+                if (projects.length === 0) {
+                    container.innerHTML += '<p class="no-data-message">אין פרויקטים להצגה.</p>';
+                    return;
+                }
+                projects.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item project-summary-item'; // New class for project summary list item
+                    div.innerHTML = `
+                                <b>${p.project}</b>: סה"כ דיירים ${p.total}
+                                <div class="item-actions">
+                                    <button onclick="viewProjectAddresses('${p.project}')" class="secondary-button">צפה בכתובות</button>
+                                    <button onclick="deleteProject('${p.project}')" class="danger-button">מחק פרויקט</button>
+                                </div>
+                            `;
+                    container.appendChild(div);
+                });
+            },
+            'שגיאה בטעינת הפרויקטים.'
+        );
+    }
+
+    function viewProjectAddresses(project) {
+        fetchAndRender(
+            `/project-addresses?project=${encodeURIComponent(project)}`,
+            'projectStats',
+            addresses => {
+                const container = document.getElementById('projectStats');
+                let html = `<h4 class="card-subtitle">כתובות וסטטוסים עבור: ${project}</h4>`;
+                if (addresses.length === 0) {
+                    html += '<p class="no-data-message">אין כתובות לפרויקט זה.</p>';
+                } else {
+                    html += '<div class="address-list">';
+                    addresses.forEach(addr => {
+                        html += `
+                                    <div class="address-item list-item">
+                                        <div class="address-details">
+                                            <span><b>${addr.address}</b></span>
+                                            <span>(סה"כ: ${addr.total_residents}, טופלו: <span class="handled-count">${addr.handled_residents}</span>, לא טופלו: <span class="unhandled-count">${addr.unhandled_residents}</span>)</span>
+                                        </div>
+                                        <button onclick="viewResidentsForAddress('${project}', '${addr.address.replace(/'/g, "\\'")}')" class="secondary-button">צפה בדיירים</button>
+                                    </div>
+                                `;
+                    });
+                    html += '</div>';
+                }
+                html += `<button class="back-button primary-button" onclick="loadAllProjects()">חזור לרשימת הפרויקטים</button>`;
+                container.innerHTML = html;
+                container.scrollIntoView({ behavior: 'smooth' });
+            },
+            'שגיאה בטעינת הכתובות לפרויקט.'
+        );
+    }
+
+    function viewResidentsForAddress(project, address) {
+        window.location.href = `/residents.html?project=${encodeURIComponent(project)}&address=${encodeURIComponent(address)}`;
+    }
+
+    // --- User-Project Assignments ---
+    async function loadAssignments() {
+        try {
+            const usersRes = await fetch('/users');
+            if (!usersRes.ok) throw new Error('שגיאה בטעינת משתמשים');
+            allUsers = await usersRes.json();
+
+            const projectsRes = await fetch('/all-project-addresses');
+            if (!projectsRes.ok) throw new Error('שגיאה בטעינת פרויקטים לשיוך');
+            const projectAddresses = await projectsRes.json();
+
+            const container = document.getElementById('assignments');
+            container.innerHTML = '<h4 class="card-subtitle">שייכות פרויקטים למשתמשים</h4>';
+
+            if (projectAddresses.length === 0) {
+                container.innerHTML += '<p class="no-data-message">אין פרויקטים/כתובות זמינים לשיוך.</p>';
+                return;
+            }
+
+            projectAddresses.forEach(pa => {
+                const div = document.createElement('div');
+                div.className = 'list-item assignment-item';
+                const usersOption = allUsers.map(u => `<option value="${u.id}">${u.username}</option>`).join('');
+
+                const safeAddressId = pa.address.replace(/[^a-zA-Z0-9]/g, '_');
+                div.innerHTML = `
+                            <b>${pa.project} - ${pa.address}</b>
+                            <div class="assign-controls">
+                                <select id="user-assign-${pa.project}-${safeAddressId}" class="styled-select user-select">
+                                    <option value="">בחר משתמש</option>
+                                    ${usersOption}
+                                </select>
+                                <button onclick="assignProjectToUser('${pa.project}', '${pa.address.replace(/'/g, "\\'")}')" class="primary-button small-button">שייך</button>
+                            </div>
+                        `;
+                container.appendChild(div);
+            });
+        } catch (e) {
+            console.error(e);
+            document.getElementById('assignments').innerHTML = '<p class="error-message">שגיאה בטעינת השייכויות.</p>';
+        }
+    }
+
+    function assignProjectToUser(project, address) {
+        const safeAddressId = address.replace(/[^a-zA-Z0-9]/g, '_');
+        const selectId = `user-assign-${project}-${safeAddressId}`;
+        const userId = document.getElementById(selectId).value;
+
+        if (!userId) {
+            alert('נא לבחור משתמש.');
+            return;
+        }
+
+        fetch('/assign-project-to-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: parseInt(userId), project, address }),
+        })
+            .then(res => {
+                if (!res.ok) {
+                    return res.text().then(text => { throw new Error(text); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('השיוך בוצע בהצלחה!');
+                } else {
+                    alert(`שגיאה בשיוך: ${data.message || 'שגיאה לא ידועה'}`);
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert(`אירעה שגיאה בשיוך הפרויקט למשתמש: ${e.message}`);
+            });
+    }
+
+    // --- User Management ---
+    function loadUsers() {
+        fetchAndRender(
+            '/users',
+            'userList',
+            users => {
+                const list = document.getElementById('userList');
+                list.innerHTML = '<h4 class="card-subtitle">רשימת משתמשים</h4>';
+                if (users.length === 0) {
+                    list.innerHTML += '<p class="no-data-message">אין משתמשים להצגה.</p>';
+                    return;
+                }
+                users.forEach(u => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item user-item';
+                    div.innerHTML = `
+                                <b>${u.username}</b> (${u.role})
+                                <div class="item-actions">
+                                    <input type="password" id="pass-${u.id}" placeholder="סיסמה חדשה" class="styled-input password-input" />
+                                    <button onclick="updateUser(${u.id})" class="secondary-button small-button">עדכן סיסמה</button>
+                                    <button onclick="deleteUser(${u.id})" class="danger-button small-button">מחק</button>
+                                </div>
+                            `;
+                    list.appendChild(div);
+                });
+            },
+            'שגיאה בטעינת המשתמשים.'
+        );
+    }
+
+    function updateUser(id) {
+        const pass = document.getElementById(`pass-${id}`).value.trim();
+        if (!pass) return alert('יש להזין סיסמה חדשה');
+
+        fetch('/update-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, password: pass })
+        })
+            .then(res => {
+                if (!res.ok) return res.text().then(text => { throw new Error(text); });
+                return res.text();
+            })
+            .then(() => {
+                alert('הסיסמה עודכנה!');
+                loadUsers();
+            })
+            .catch(e => {
+                alert(`שגיאה בעדכון סיסמה: ${e.message}`);
+                console.error(e);
+            });
+    }
+
+    function deleteUser(id) {
+        if (!confirm('אתה בטוח שברצונך למחוק את המשתמש?')) return;
+
+        fetch('/delete-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        })
+            .then(res => {
+                if (!res.ok) return res.text().then(text => { throw new Error(text); });
+                return res.text();
+            })
+            .then(() => {
+                alert('המשתמש נמחק!');
+                loadUsers();
+            })
+            .catch(e => {
+                alert(`שגיאה במחיקת משתמש: ${e.message}`);
+                console.error(e);
+            });
+    }
+
+    document.getElementById('addUserForm').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const username = document.getElementById('newUsername').value.trim();
+        const password = document.getElementById('newPassword').value.trim();
+        const role = document.getElementById('newRole').value;
+        const messageDiv = document.getElementById('addUserMessage');
+
+        if (!username || !password || !role) {
+            messageDiv.textContent = 'נא למלא את כל השדות';
+            messageDiv.style.color = 'red';
+            return;
+        }
+
+        try {
+            const res = await fetch('/add-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role }),
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText);
+            }
+
+            messageDiv.textContent = 'המשתמש נוסף בהצלחה';
+            messageDiv.style.color = 'green';
+            // Reset fields
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newRole').value = '';
+            loadUsers();
+        } catch (err) {
+            messageDiv.textContent = `שגיאה: ${err.message}`;
+            messageDiv.style.color = 'red';
+            console.error(err);
+        }
+    });
+
+    // Add event listener for logout button
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        // Here you would typically make an API call to log out on the server
+        // For now, we'll just redirect to the login page
+        window.location.href = '/'; // Or '/login.html'
+    });
+
+    // Initial load of data when the page loads
+    window.onload = () => {
+        loadAssignments();
+        loadAllProjects();
+        loadUsers();
+    };
+</script>
+</body>
+</html>
