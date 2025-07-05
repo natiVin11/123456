@@ -15,12 +15,18 @@ const upload = multer({ dest: 'uploads/' }); // תיקייה זמנית לקבצ
 // --- הגדרות Middleware ---
 app.use(express.json()); // מאפשר לנתח בקשות JSON
 app.use(express.urlencoded({ extended: true })); // מאפשר לנתח בקשות עם נתוני טפסים
+
+// הגדרת סשנים - חובה לפני הגשת קבצים סטטיים כדי שניתן יהיה לגשת ל-req.session
 app.use(session({
-    secret: 'secret-key', // מפתח סודי לחתימה על העוגיות של הסשן
+    secret: 'secret-key-very-secret-and-long', // מפתח סודי ארוך וחזק לחתימה על העוגיות של הסשן. שנה את זה במערכת אמיתית!
     resave: false, // מונע שמירה מחדש של סשנים שלא שונו
-    saveUninitialized: true // שומר סשנים חדשים גם אם הם לא אותחלו
+    saveUninitialized: true, // שומר סשנים חדשים גם אם הם לא אותחלו
+    cookie: { secure: false } // שנה ל-true אם אתה משתמש ב-HTTPS (מומלץ מאוד)
 }));
-app.use(express.static('public')); // מגיש קבצים סטטיים מהתיקייה 'public'
+
+// הגשת קבצים סטטיים מהתיקייה 'public'
+// אם יהיו לך דפים כמו user.html או admin.html בתוך תיקיית 'public', הם יוגשו מכאן.
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- פונקציית אתחול מסד נתונים ---
 function initDB() {
@@ -92,6 +98,11 @@ initDB();
 
 // --- נקודות קצה (API Endpoints) ---
 
+// הגשת דף הבית (עמוד ההתחברות)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // בדיקת מצב התחברות המשתמש
 app.get('/me', (req, res) => {
     if (req.session && req.session.user) {
@@ -107,15 +118,23 @@ app.post('/login', (req, res) => {
     if (!username || !password) return res.status(400).send('שם משתמש או סיסמה חסרים.');
 
     db.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
-        if (err) return res.status(500).send('שגיאת מסד נתונים.');
+        if (err) {
+            console.error('Login DB error:', err);
+            return res.status(500).send('שגיאת מסד נתונים.');
+        }
         if (!user) return res.status(401).send('שם משתמש או סיסמה שגויים.');
 
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) return res.status(401).send('שם משתמש או סיסמה שגויים.');
 
         req.session.user = { id: user.id, username: user.username, role: user.role };
-        // הפנייה לדף המתאים לפי תפקיד המשתמש
-        res.redirect(user.role === 'admin' ? '/admin.html' : '/user.html');
+        // !!! תיקון: res.redirect() מבצע הפניה HTTP. אין לשלוח JSON כאן.
+        // הנתיבים צריכים להיות יחסיים לשורש השרת של ה-Node.js
+        if (user.role === 'admin') {
+            res.redirect('/admin.html'); // ודא ש-admin.html נמצא בתיקיית public
+        } else {
+            res.redirect('/user.html'); // ודא ש-user.html נמצא בתיקיית public
+        }
     });
 });
 
@@ -127,7 +146,10 @@ app.get('/my-buildings', (req, res) => {
     const userId = req.session.user.id;
 
     db.all('SELECT * FROM user_projects WHERE user_id = ?', [userId], (err, rows) => {
-        if (err) return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
+        if (err) {
+            console.error('my-buildings DB error:', err);
+            return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
+        }
         res.json(rows);
     });
 });
@@ -138,7 +160,10 @@ app.get('/residents-by-building', (req, res) => {
     if (!project || !address) return res.status(400).json({ error: 'חסרים פרמטרים: פרויקט או כתובת.' });
 
     db.all('SELECT * FROM residents WHERE project = ? AND address = ?', [project, address], (err, rows) => {
-        if (err) return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
+        if (err) {
+            console.error('residents-by-building DB error:', err);
+            return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
+        }
         res.json(rows);
     });
 });
