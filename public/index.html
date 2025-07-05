@@ -1,43 +1,99 @@
 <!DOCTYPE html>
 <html lang="he">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>התחברות</title>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מערכת נתונים - כניסה</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<div class="background-elements">
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
+<div id="loginContainer" class="login-container">
+  <h1>כניסה למערכת</h1>
+  <div class="login-form">
+    <div class="form-row">
+      <label for="username">שם משתמש:</label>
+      <input type="text" id="username" required>
+    </div>
+    <div class="form-row">
+      <label for="password">סיסמא:</label>
+      <input type="password" id="password" required>
+    </div>
+    <button onclick="login()">התחבר</button>
+    <p id="loginMessage" class="error-message"></p>
+  </div>
 </div>
 
-<div class="logo-container">
-    <img src="עיצוב ללא שם (4).svg" alt="לוגו החברה">
-</div>
+<div id="appContent" style="display: none;">
+  <h1>הצגת נתונים</h1>
 
-<div class="login-container">
-    <h2>התחברות</h2>
-    <form action="/login" method="POST">
-        <div class="input-group">
-            <input type="text" name="username" placeholder="שם משתמש" required>
-        </div>
-        <div class="input-group">
-            <input type="password" name="password" placeholder="סיסמה" required>
-        </div>
-        <button type="submit">התחבר</button>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="חפש לפי תעודת זהות, שם בעלים או כתובת...">
+    <button onclick="searchTable()">חיפוש</button>
+    <button onclick="clearSearch()">נקה חיפוש</button>
+  </div>
+
+  <button class="add-resident-toggle" onclick="toggleAddResidentForm()">+ הוסף דייר חדש</button>
+
+  <div id="addResidentForm" class="add-form-container" style="display: none;">
+    <h2>הוספת דייר חדש</h2>
+    <form onsubmit="event.preventDefault(); addResident();">
+      <div class="form-row">
+        <label for="newAddress">כתובת:</label>
+        <input type="text" id="newAddress" required>
+      </div>
+      <div class="form-row">
+        <label for="newResidentId">תעודת זהות דייר:</label>
+        <input type="text" id="newResidentId">
+      </div>
+      <div class="form-row">
+        <label for="newResidentName">שם הדייר:</label>
+        <input type="text" id="newResidentName" required>
+      </div>
+      <div class="form-row">
+        <label for="newResidentPhone">נייד הדייר:</label>
+        <input type="text" id="newResidentPhone">
+      </div>
+      <div class="form-row">
+        <label for="newOwnerAddress">כתובת בעלים:</label>
+        <input type="text" id="newOwnerAddress">
+      </div>
+      <div class="form-row">
+        <label for="newOwnerId">תעודת זהות בעלים:</label>
+        <input type="text" id="newOwnerId">
+      </div>
+      <div class="form-row">
+        <label for="newOwnerName">שם בעלים:</label>
+        <input type="text" id="newOwnerName">
+      </div>
+      <div class="form-row">
+        <label for="newOwnerPhone">נייד הבעלים:</label>
+        <input type="text" id="newOwnerPhone">
+      </div>
+      <button type="submit">הוסף דייר</button>
+      <button type="button" onclick="toggleAddResidentForm()">ביטול</button>
     </form>
+  </div>
+
+  <div class="table-container">
+    <table id="dataTable">
+      <thead>
+      <tr>
+        <th>כתובת</th>
+        <th>תעודת זהות</th>
+        <th>שם התושב</th>
+        <th>נייד התושב</th>
+        <th>כתובת (בעלים)</th>
+        <th>תעודת זהות (בעלים)</th>
+        <th>שם בעלים</th>
+        <th>נייד הבעלים</th>
+      </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
 </div>
 
+<script src="login.js"></script>
 </body>
 </html>
