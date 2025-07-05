@@ -18,5 +18,8 @@
     "multer": "^2.0.1",
     "sqlite3": "^5.1.7",
     "xlsx": "^0.18.5"
-  }
+  }, {
+  "start": "node server.js", // Or whatever your main server file is
+  "dev": "nodemon server.js" // If you use nodemon for development
+}
 }
