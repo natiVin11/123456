@@ -10,15 +10,22 @@ const fs = require('fs');
 
 const app = express();
 const db = new sqlite3.Database('./data.sqlite1');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: 'uploads/' }); // תיקייה זמנית לקבצים מועלים
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(session({ secret: 'secret-key', resave: false, saveUninitialized: true }));
-app.use(express.static('public'));
+// --- הגדרות Middleware ---
+app.use(express.json()); // מאפשר לנתח בקשות JSON
+app.use(express.urlencoded({ extended: true })); // מאפשר לנתח בקשות עם נתוני טפסים
+app.use(session({
+    secret: 'secret-key', // מפתח סודי לחתימה על העוגיות של הסשן
+    resave: false, // מונע שמירה מחדש של סשנים שלא שונו
+    saveUninitialized: true // שומר סשנים חדשים גם אם הם לא אותחלו
+}));
+app.use(express.static('public')); // מגיש קבצים סטטיים מהתיקייה 'public'
 
+// --- פונקציית אתחול מסד נתונים ---
 function initDB() {
     db.serialize(() => {
+        // טבלת משתמשים
         db.run(`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
@@ -26,6 +33,7 @@ function initDB() {
             role TEXT
         )`);
 
+        // טבלת דיירים
         db.run(`CREATE TABLE IF NOT EXISTS residents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             precise_address TEXT,
@@ -52,6 +60,7 @@ function initDB() {
             address TEXT
         )`);
 
+        // טבלת שיוכי פרויקטים למשתמשים
         db.run(`CREATE TABLE IF NOT EXISTS user_projects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
@@ -61,6 +70,7 @@ function initDB() {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )`);
 
+        // משתמשי ברירת מחדל לאתחול ראשוני
         const defaultUsers = [
             { username: 'ניסים_מנהל', password: 'ניסים עשור', role: 'admin' },
             { username: 'אליהו_מנהל', password: 'אליהו אללוף', role: 'admin' },
@@ -68,6 +78,7 @@ function initDB() {
             { username: 'אליהו אללוף', password: 'אליהו אללוף', role: 'user' },
         ];
 
+        // הוספת משתמשי ברירת המחדל (רק אם אינם קיימים כבר)
         defaultUsers.forEach(u => {
             bcrypt.hash(u.password, 12).then(hashed => {
                 db.run('INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)', [u.username, hashed, u.role]);
@@ -76,8 +87,12 @@ function initDB() {
     });
 }
 
+// קריאה לפונקציית אתחול מסד הנתונים
 initDB();
 
+// --- נקודות קצה (API Endpoints) ---
+
+// בדיקת מצב התחברות המשתמש
 app.get('/me', (req, res) => {
     if (req.session && req.session.user) {
         res.json(req.session.user);
@@ -86,47 +101,52 @@ app.get('/me', (req, res) => {
     }
 });
 
+// התחברות משתמש
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) return res.status(400).send('Missing username or password');
+    if (!username || !password) return res.status(400).send('שם משתמש או סיסמה חסרים.');
 
     db.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
-        if (err) return res.status(500).send('DB Error');
-        if (!user) return res.status(401).send('Unauthorized');
+        if (err) return res.status(500).send('שגיאת מסד נתונים.');
+        if (!user) return res.status(401).send('שם משתמש או סיסמה שגויים.');
 
         const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(401).send('Unauthorized');
+        if (!valid) return res.status(401).send('שם משתמש או סיסמה שגויים.');
 
         req.session.user = { id: user.id, username: user.username, role: user.role };
+        // הפנייה לדף המתאים לפי תפקיד המשתמש
         res.redirect(user.role === 'admin' ? '/admin.html' : '/user.html');
     });
 });
 
+// קבלת בניינים (פרויקטים וכתובות) המשויכים למשתמש המחובר
 app.get('/my-buildings', (req, res) => {
     if (!req.session || !req.session.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'לא מורשה. אנא התחבר.' });
     }
     const userId = req.session.user.id;
 
     db.all('SELECT * FROM user_projects WHERE user_id = ?', [userId], (err, rows) => {
-        if (err) return res.status(500).json({ error: 'DB Error' });
+        if (err) return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
         res.json(rows);
     });
 });
 
+// קבלת דיירים לפי פרויקט וכתובת
 app.get('/residents-by-building', (req, res) => {
     const { project, address } = req.query;
-    if (!project || !address) return res.status(400).json({ error: 'Missing parameters' });
+    if (!project || !address) return res.status(400).json({ error: 'חסרים פרמטרים: פרויקט או כתובת.' });
 
     db.all('SELECT * FROM residents WHERE project = ? AND address = ?', [project, address], (err, rows) => {
-        if (err) return res.status(500).json({ error: 'DB Error' });
+        if (err) return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
         res.json(rows);
     });
 });
 
+// עדכון פרטי דייר
 app.post('/update-resident', (req, res) => {
     const { id, status, mobile_phone, house_number, note } = req.body;
-    if (!id) return res.status(400).send('Missing resident id');
+    if (!id) return res.status(400).send('חסר מזהה דייר (ID).');
 
     const fields = [];
     const values = [];
@@ -138,39 +158,53 @@ app.post('/update-resident', (req, res) => {
 
     fields.push('updated_at = ?');
     values.push(new Date().toISOString());
-    values.push(id);
+    values.push(id); // ה-ID של הדייר הוא הערך האחרון ב-values
 
     const sql = `UPDATE residents SET ${fields.join(', ')} WHERE id = ?`;
     db.run(sql, values, err => {
-        if (err) return res.status(500).send('DB Error');
-        res.send('עודכן בהצלחה');
+        if (err) {
+            console.error('שגיאה בעדכון דייר:', err.message);
+            return res.status(500).send('שגיאת מסד נתונים בעת עדכון דייר.');
+        }
+        res.send('הדייר עודכן בהצלחה.');
     });
 });
 
+// --- העלאת קובץ אקסל וייבוא דיירים (החלק המעודכן ביותר) ---
 app.post('/upload', upload.single('file'), (req, res) => {
-    const { project, address } = req.body;
-    if (!project || !address || !req.file) {
-        if (req.file) fs.unlinkSync(req.file.path); // Clean up uploaded file if validation fails
-        return res.status(400).send('Missing project name, address, or file.');
+    // שם הפרויקט נלקח מגוף הבקשה (יוזן על ידי האדמין)
+    const { project } = req.body;
+
+    if (!project || !req.file) {
+        if (req.file) fs.unlinkSync(req.file.path); // נקה קובץ אם חסר פרויקט או קובץ
+        return res.status(400).send('חסר שם פרויקט או קובץ להעלאה.');
     }
 
     try {
         const wb = xlsx.readFile(req.file.path);
-        const sheet = wb.Sheets[wb.SheetNames[0]];
+        // קח את שמו של הגיליון הראשון (שזה בעצם הכתובת במקרה זה)
+        const sheetName = wb.SheetNames[0];
+        const sheet = wb.Sheets[sheetName];
+
+        // המר את נתוני הגיליון לפורמט JSON
         const data = xlsx.utils.sheet_to_json(sheet);
 
         if (data.length === 0) {
-            fs.unlinkSync(req.file.path);
+            fs.unlinkSync(req.file.path); // נקה את הקובץ שהועלה
             return res.status(400).send('קובץ האקסל ריק או לא מכיל נתונים תקינים.');
         }
 
+        // הכתובת תיקבע משם הגיליון
+        const address = sheetName;
+
+        // הכנת הצהרה להכנסת דיירים למסד הנתונים
         const stmt = db.prepare(`INSERT INTO residents (
             precise_address, owner_full_name, mobile_phone, email, property_right, residing, special_needs,
             household_number, signed_document, representation_member, house_number, entrance, parcel,
             sub_parcel, apartment_number, floor, id_number, status, note, updated_at, project, address
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
-        db.serialize(() => { // Use serialize to ensure sequential inserts if many rows
+        db.serialize(() => { // שימוש ב-serialize כדי להבטיח הכנסות רציפות של שורות
             data.forEach(row => {
                 stmt.run([
                     row['כתובת מדוייקת'] || '',
@@ -178,111 +212,119 @@ app.post('/upload', upload.single('file'), (req, res) => {
                     row['טלפון נייד'] || '',
                     row['כתובת אי מייל'] || '',
                     row['הזכות בנכס בעלות / שכירות'] || '',
-                    row['מגורים בדירה כן/לא'] === 'כן' ? 1 : 0,
+                    // המרה של "כן"/"לא" ל-1/0 עבור שדות בוליאניים
+                    (row['מגורים בדירה כן/לא'] && String(row['מגורים בדירה כן/לא']).toLowerCase() === 'כן') ? 1 : 0,
                     row['קשיש (70+) / מוגבלות / צרכים מיוחדים'] || '',
-                    row['מספר נפשות המגוררות בבית'] || '',
+                    row['מספר נפשות המגוררות בבית'] || 0, // ברירת מחדל 0 למספרים
                     row['האם חתם על מסמך...'] || '',
-                    row['האם חבר בנציגות כן/לא'] === 'כן' ? 1 : 0,
+                    (row['האם חבר בנציגות כן/לא'] && String(row['האם חבר בנציגות כן/לא']).toLowerCase() === 'כן') ? 1 : 0,
                     row['מ\' בית'] || '',
                     row['כניסה'] || '',
                     row['חלקה'] || '',
                     row['תת חלקה'] || '',
                     row['מ\' דירה'] || '',
                     row['קומה'] || '',
-                    row['ת.\u05d6'] || '', // Corrected for 'ת.ז'
-                    'טרם טופל', '', new Date().toISOString(), project, address
+                    row['ת.ז'] || '', // ודא שכותרת העמודה באקסל היא "ת.ז"
+                    'טרם טופל', // סטטוס ברירת מחדל
+                    row['הערות'] || '', // הוספתי תמיכה בעמודת "הערות" מהאקסל
+                    new Date().toISOString(), // זמן עדכון נוכחי
+                    project, // הפרויקט שקיבלנו מהאדמין
+                    address   // הכתובת שחולצה משם הגיליון
                 ], function(err) {
                     if (err) {
-                        console.error('Error inserting row:', err.message, row);
+                        console.error('שגיאה בהכנסת שורה:', err.message, row);
                     }
                 });
             });
-            stmt.finalize();
-            fs.unlinkSync(req.file.path);
-            res.send('הקובץ הועלה בהצלחה');
+            stmt.finalize(); // סגירת הצהרת ההכנה לאחר סיום הלולאה
+            fs.unlinkSync(req.file.path); // מחיקת הקובץ הזמני לאחר העיבוד
+            res.send(`הקובץ הועלה בהצלחה ונתוני הדיירים יובאו עבור פרויקט "${project}" בכתובת "${address}".`);
         });
 
     } catch (e) {
-        console.error(e);
-        if (req.file) fs.unlinkSync(req.file.path);
-        res.status(500).send('Error processing file');
+        console.error('שגיאה בעיבוד קובץ האקסל:', e);
+        if (req.file) fs.unlinkSync(req.file.path); // מחיקת הקובץ גם במקרה של שגיאה
+        res.status(500).send('אירעה שגיאה בעיבוד הקובץ. ודא שהפורמט תקין ושמות העמודות נכונים.');
     }
 });
 
-// מחזיר את כל המשתמשים (ללא סיסמאות)
+// --- ניהול משתמשים (עבור מנהלים) ---
+
+// מחזיר את כל המשתמשים (ללא סיסמאות מטעמי אבטחה)
 app.get('/users', (req, res) => {
     db.all('SELECT id, username, role FROM users', [], (err, rows) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ error: 'DB Error' });
+            return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
         }
         res.json(rows);
     });
 });
 
-// עדכון סיסמת משתמש
+// עדכון סיסמת משתמש קיים
 app.post('/update-user', async (req, res) => {
     const { id, password } = req.body;
-    if (!id || !password) return res.status(400).send('Missing user ID or password');
+    if (!id || !password) return res.status(400).send('חסר מזהה משתמש או סיסמה.');
 
     try {
         const hashedPassword = await bcrypt.hash(password, 12);
         db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id], function(err) {
             if (err) {
                 console.error(err);
-                return res.status(500).send('DB Error');
+                return res.status(500).send('שגיאת מסד נתונים בעת עדכון סיסמה.');
             }
             if (this.changes === 0) {
-                return res.status(404).send('User not found');
+                return res.status(404).send('משתמש לא נמצא.');
             }
-            res.send('הסיסמה עודכנה בהצלחה');
+            res.send('הסיסמה עודכנה בהצלחה.');
         });
     } catch (error) {
         console.error(error);
-        res.status(500).send('Error hashing password');
+        res.status(500).send('שגיאה בגיבוב סיסמה.');
     }
 });
 
 // מחיקת משתמש
 app.post('/delete-user', (req, res) => {
     const { id } = req.body;
-    if (!id) return res.status(400).send('Missing user ID');
+    if (!id) return res.status(400).send('חסר מזהה משתמש.');
 
     db.run('DELETE FROM users WHERE id = ?', [id], function(err) {
         if (err) {
             console.error(err);
-            return res.status(500).send('DB Error');
+            return res.status(500).send('שגיאת מסד נתונים בעת מחיקת משתמש.');
         }
         if (this.changes === 0) {
-            return res.status(404).send('User not found');
+            return res.status(404).send('משתמש לא נמצא.');
         }
-        res.send('המשתמש נמחק בהצלחה');
+        res.send('המשתמש נמחק בהצלחה.');
     });
 });
 
 // הוספת משתמש חדש
 app.post('/add-user', async (req, res) => {
     const { username, password, role } = req.body;
-    if (!username || !password || !role) return res.status(400).send('Missing username, password, or role');
+    if (!username || !password || !role) return res.status(400).send('חסרים שם משתמש, סיסמה או תפקיד.');
 
     try {
         const hashedPassword = await bcrypt.hash(password, 12);
         db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, hashedPassword, role], function(err) {
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
-                    return res.status(409).send('שם המשתמש כבר קיים');
+                    return res.status(409).send('שם המשתמש כבר קיים. בחר שם אחר.');
                 }
                 console.error(err);
-                return res.status(500).send('DB Error');
+                return res.status(500).send('שגיאת מסד נתונים בעת הוספת משתמש.');
             }
-            res.status(201).send('המשתמש נוסף בהצלחה');
+            res.status(201).send('המשתמש נוסף בהצלחה.');
         });
     } catch (error) {
         console.error(error);
-        res.status(500).send('Error hashing password');
+        res.status(500).send('שגיאה בגיבוב סיסמה.');
     }
 });
 
+// --- ניהול פרויקטים וכתובות ---
 
 // מחזיר את כל שמות הפרויקטים עם מספר הדיירים בכל פרויקט
 app.get('/all-projects', (req, res) => {
@@ -294,51 +336,47 @@ app.get('/all-projects', (req, res) => {
     db.all(sql, [], (err, rows) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ error: 'DB Error' });
+            return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
         }
         res.json(rows);
     });
 });
 
-// חדש: מחיקת פרויקט (כל הדיירים הקשורים לפרויקט יימחקו)
+// מחיקת פרויקט (כולל כל הדיירים והשיוכים למשתמשים הקשורים לפרויקט)
 app.post('/delete-project', (req, res) => {
     const { project } = req.body;
     if (!project) {
-        return res.status(400).json({ success: false, message: 'Missing project name.' });
+        return res.status(400).json({ success: false, message: 'חסר שם פרויקט.' });
     }
 
     db.serialize(() => {
-        db.run('PRAGMA foreign_keys = ON;'); // Enable foreign key constraints
+        db.run('PRAGMA foreign_keys = ON;'); // הפעלת אכיפת מפתחות זרים כדי לוודא עקביות
 
-        // Delete assignments first (if user_projects has ON DELETE CASCADE to users,
-        // it doesn't automatically cascade to residents, so we manage it)
+        // מחיקת שיוכים למשתמשים עבור הפרויקט
         db.run('DELETE FROM user_projects WHERE project = ?', [project], function(err) {
             if (err) {
-                console.error('Error deleting project assignments:', err.message);
-                return res.status(500).json({ success: false, message: 'Database error during assignment deletion.' });
+                console.error('שגיאה במחיקת שיוכי פרויקטים:', err.message);
+                return res.status(500).json({ success: false, message: 'שגיאת מסד נתונים במחיקת שיוכים לפרויקט.' });
             }
 
-            // Then delete the residents
+            // לאחר מכן, מחיקת הדיירים הקשורים לפרויקט
             db.run('DELETE FROM residents WHERE project = ?', [project], function(err) {
                 if (err) {
-                    console.error('Error deleting project residents:', err.message);
-                    return res.status(500).json({ success: false, message: 'Database error during resident deletion.' });
+                    console.error('שגיאה במחיקת דיירי הפרויקט:', err.message);
+                    return res.status(500).json({ success: false, message: 'שגיאת מסד נתונים במחיקת דיירים בפרויקט.' });
                 }
-                if (this.changes > 0 || this.changes === 0) { // If no residents, it's still a "success" for deleting the project
-                    res.json({ success: true, message: `Project "${project}" and its residents/assignments deleted successfully.` });
-                } else {
-                    res.status(404).json({ success: false, message: `Project "${project}" not found or no residents to delete.` });
-                }
+                // אם היו שינויים (נמחקו דיירים) או אם לא היו דיירים מלכתחילה (changes === 0), זה עדיין נחשב להצלחה
+                res.json({ success: true, message: `הפרויקט "${project}" וכל הנתונים הקשורים אליו (דיירים ושיוכים) נמחקו בהצלחה.` });
             });
         });
     });
 });
 
-// חדש: מחזיר את כל הכתובות הייחודיות עבור פרויקט מסוים, יחד עם סטטוסים
+// מחזיר את כל הכתובות הייחודיות עבור פרויקט מסוים, יחד עם סטטוסים (טופל/טרם טופל)
 app.get('/project-addresses', (req, res) => {
     const { project } = req.query;
     if (!project) {
-        return res.status(400).json({ error: 'Missing project parameter.' });
+        return res.status(400).json({ error: 'חסר פרמטר פרויקט.' });
     }
 
     const sql = `
@@ -355,45 +393,46 @@ app.get('/project-addresses', (req, res) => {
     db.all(sql, [project], (err, rows) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ error: 'DB Error' });
+            return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
         }
         res.json(rows);
     });
 });
 
-// חדש: מחזיר את כל זוגות הפרויקט-כתובת הייחודיים
+// מחזיר את כל זוגות הפרויקט-כתובת הייחודיים הקיימים במערכת
 app.get('/all-project-addresses', (req, res) => {
     const sql = `SELECT DISTINCT project, address FROM residents ORDER BY project, address;`;
     db.all(sql, [], (err, rows) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ error: 'DB Error' });
+            return res.status(500).json({ error: 'שגיאת מסד נתונים.' });
         }
         res.json(rows);
     });
 });
 
-
-// חדש: שיוך פרויקט-כתובת למשתמש
+// שיוך פרויקט-כתובת למשתמש ספציפי
 app.post('/assign-project-to-user', (req, res) => {
     const { userId, project, address } = req.body;
     if (!userId || !project || !address) {
-        return res.status(400).json({ success: false, message: 'Missing user ID, project, or address.' });
+        return res.status(400).json({ success: false, message: 'חסרים מזהה משתמש, פרויקט או כתובת.' });
     }
 
+    // INSERT OR IGNORE מונע יצירת כפילויות אם השיוך כבר קיים
     db.run('INSERT OR IGNORE INTO user_projects (user_id, project, address) VALUES (?, ?, ?)',
         [userId, project, address], function(err) {
             if (err) {
-                console.error('Error assigning project to user:', err.message);
-                return res.status(500).json({ success: false, message: 'Database error during assignment.' });
+                console.error('שגיאה בשיוך פרויקט למשתמש:', err.message);
+                return res.status(500).json({ success: false, message: 'שגיאת מסד נתונים במהלך השיוך.' });
             }
             if (this.changes > 0) {
-                res.json({ success: true, message: 'Project assigned to user successfully.' });
+                res.json({ success: true, message: 'הפרויקט שויך למשתמש בהצלחה.' });
             } else {
-                res.status(200).json({ success: false, message: 'Assignment already exists or user/project not found.' });
+                res.status(200).json({ success: false, message: 'השיוך כבר קיים עבור משתמש זה.' });
             }
         });
 });
 
+// --- הפעלת השרת ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`שרת מנהל דיירים פועל על פורט: http://localhost:${PORT}`));
